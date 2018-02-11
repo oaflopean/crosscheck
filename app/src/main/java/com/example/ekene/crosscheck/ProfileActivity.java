@@ -1,19 +1,34 @@
 package com.example.ekene.crosscheck;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 public class ProfileActivity extends AppCompatActivity {
+    private DownloadManager downloadManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,38 +37,43 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         // initialize the View objects
-        ImageView profileImageView = (ImageView) findViewById(R.id.profileImageView);
         TextView userNameTextView = (TextView) findViewById(R.id.usernameTextView);
-        ImageButton shareProfile = (ImageButton) findViewById(R.id.shareProfile);
+        Button shareProfile = (Button) findViewById(R.id.shareProfile);
+        Button saveEpub=(Button) findViewById(R.id.shareProfile2);
         TextView developerUrl = (TextView) findViewById(R.id.developerUrl);
 
         //getting the passed intent
         Intent intent = getIntent();
         final String userName = intent.getStringExtra(DevelopersAdapter.KEY_NAME);
-        String image = intent.getStringExtra(DevelopersAdapter.KEY_IMAGE);
         final String profileUrl = intent.getStringExtra(DevelopersAdapter.KEY_URL);
+        final String TextURL=intent.getStringExtra(DevelopersAdapter.KEY_TEXT);
+        final String epubURL=intent.getStringExtra(DevelopersAdapter.KEY_EPUB);
+        final String idNum=intent.getStringExtra(DevelopersAdapter.KEY_ID);
 
-        setTitle(userName + "'s profile");
+        setTitle("Downloads");
 
         //using picasso to load images into the defined imageView
-        Picasso.with(this)
-                .load(image)
-                .into(profileImageView);
+
 
         userNameTextView.setText(userName);
         developerUrl.setText(profileUrl);
 
         //setting the onclick function of the developer url (opens in browser)
-        developerUrl.setOnClickListener(new View.OnClickListener() {
+        saveEpub.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                String url = profileUrl;
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                startActivity(i);
+
+                downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                Uri uri = Uri.parse(epubURL + "pg" + idNum + "-images.epub");
+                DownloadManager.Request request = new DownloadManager.Request(uri);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS.toString(), userName+".epub");
+                Long reference = downloadManager.enqueue(request);
+
             }
         });
+
 
 
         //setting the share intent for the profile
@@ -94,5 +114,40 @@ public class ProfileActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private Boolean downloadAndSaveFile(String server, int portNumber,
+                                        String user, String password, String filename, File localFile)
+            throws IOException {
+        FTPClient ftp = null;
 
+        try {
+            ftp = new FTPClient();
+            ftp.connect(server, portNumber);
+            Log.d(LOG_TAG, "Connected. Reply: " + ftp.getReplyString());
+
+            ftp.login(user, password);
+            Log.d(LOG_TAG, "Logged in");
+            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+            Log.d(LOG_TAG, "Downloading");
+            ftp.enterLocalPassiveMode();
+
+            OutputStream outputStream = null;
+            boolean success = false;
+            try {
+                outputStream = new BufferedOutputStream(new FileOutputStream(
+                        localFile));
+                success = ftp.retrieveFile(filename, outputStream);
+            } finally {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+
+            return success;
+        } finally {
+            if (ftp != null) {
+                ftp.logout();
+                ftp.disconnect();
+            }
+        }
+    }
 }

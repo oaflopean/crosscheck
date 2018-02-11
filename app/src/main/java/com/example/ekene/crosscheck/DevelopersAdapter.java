@@ -26,6 +26,11 @@ public class DevelopersAdapter extends RecyclerView.Adapter<DevelopersAdapter.Vi
     public static final String KEY_IMAGE = "image";
     public static final String KEY_URL = "url";
 
+    public static final String KEY_TEXT = "text";
+
+    public static final String KEY_EPUB = "epub";
+
+    public static final String KEY_ID = "id";
     // we define a list from the DevelopersList java class
 
     private List<DevelopersList> developersLists;
@@ -55,14 +60,15 @@ public class DevelopersAdapter extends RecyclerView.Adapter<DevelopersAdapter.Vi
 
         final DevelopersList developersList = developersLists.get(position);
         holder.login.setText(developersList.getLogin());
-        Picasso.with(context)
-                .load(developersList.getAvatar_url())
-                .into(holder.avatar_url);
+
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DevelopersList developersList1 = developersLists.get(position);
                 Intent skipIntent = new Intent(v.getContext(), ProfileActivity.class);
+                skipIntent.putExtra(KEY_TEXT, developersList1.getText());
+                skipIntent.putExtra(KEY_EPUB, developersList1.getEpub());
+                skipIntent.putExtra(KEY_ID, developersList1.getId());
                 skipIntent.putExtra(KEY_NAME, developersList1.getLogin());
                 skipIntent.putExtra(KEY_URL, developersList1.getHtml_url());
                 skipIntent.putExtra(KEY_IMAGE, developersList1.getAvatar_url());
@@ -85,9 +91,9 @@ public class DevelopersAdapter extends RecyclerView.Adapter<DevelopersAdapter.Vi
         // define the View objects
 
         public TextView login;
-        public ImageView avatar_url;
-        public TextView html_url;
+
         public LinearLayout linearLayout;
+
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -95,8 +101,6 @@ public class DevelopersAdapter extends RecyclerView.Adapter<DevelopersAdapter.Vi
             // initialize the View objects
 
             login = (TextView) itemView.findViewById(R.id.username);
-            avatar_url = (ImageView) itemView.findViewById(R.id.imageView);
-            html_url = (TextView) itemView.findViewById(R.id.htmUrl);
             linearLayout = (LinearLayout) itemView.findViewById(R.id.linearLayout);
         }
 

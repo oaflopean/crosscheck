@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CrossCheck</string>
+    <string name="text">Txt</string>
+    <string name="epub">Epub</string>
 </resources>

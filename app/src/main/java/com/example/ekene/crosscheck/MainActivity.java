@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                         try{
                             for (int i = 0; i < response.length(); i++) { // Walk through the Array.
                             JSONObject obj = response.getJSONObject(i);
-                            DevelopersList developers = new DevelopersList(obj.getString("title"));
+                            DevelopersList developers = new DevelopersList(obj.getString("title"), obj.getString("author"), obj.getString("textlink"), obj.getString("epublink"), obj.getString("bookid"));
                             developersLists.add(developers);
                         }
 
